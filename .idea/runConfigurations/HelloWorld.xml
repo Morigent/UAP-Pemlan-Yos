@@ -1,0 +1,8 @@
+<configuration default="false" name="HelloWorld" type="Application" factoryName="Application">
+  <option name="MAIN_CLASS_NAME" value="HelloWorld" />
+  <option name="VM_PARAMETERS" value="" />
+  <option name="PROGRAM_PARAMETERS" value="" />
+  <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+  <module name="UAP-Pemlan-Yos" />
+</configuration>
+
