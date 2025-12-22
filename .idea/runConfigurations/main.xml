@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Percabangan" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="Controller.Main" />
+  <configuration default="false" name="main" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="Main" />
     <module name="UAP-Pemlan-Yos" />
     <method v="2">
       <option name="Make" enabled="true" />

@@ -1,7 +1,8 @@
-package controller;
+package Controller;
 
 import service.LoginService;
 import util.SessionManager;
+
 
 public class LoginController {
     private LoginService authService = new LoginService();

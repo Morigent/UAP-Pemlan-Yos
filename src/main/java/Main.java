@@ -1,35 +1,7 @@
-/*package Controller;
 
-import javax.swing.*;
-import java.awt.*;
+//import Controller;
+import Controller.*;
 
-public class Main {
-    public static void main(String[] args) {
-        JLabel totalUang;
-        JLabel totalPengeluaran;
-
-        //nanti ambil dari file handiling angkanya
-        totalUang = new JLabel("Total Uang: 0");
-        totalUang.setFont(new Font("BEBAS NEUE", Font.BOLD, 30));
-
-        totalPengeluaran = new JLabel("Total Pengeluaran: 0");
-        totalPengeluaran.setFont(new Font("BEBAS NEUE", Font.BOLD, 30));
-
-
-        LandingPage landingPage = new LandingPage(totalUang, totalPengeluaran);
-
-        int nilai = 85;
-
-        if (nilai >= 80) {
-            System.out.println("Nilai A");
-        } else if (nilai >= 70) {
-            System.out.println("Nilai B");
-        } else {
-            System.out.println("Nilai C");
-        }
-    }
-}*/
-import controller.*;
 import java.time.LocalDate;
 import java.util.Scanner;
 
@@ -41,28 +13,13 @@ public class Main {
     private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        boolean running = true;
-
-        while (running) {
-            if (!authController.isLoggedIn()) {
-                showLoginMenu();
-            } else {
-                showMainMenu();
-            }
-        }
+        LandingPage landingPage = new LandingPage();
     }
 
     private static void showLoginMenu() {
-        System.out.println("\n=== APLIKASI MANAJEMEN KEUANGAN ===");
-        System.out.println("1. Login");
-        System.out.println("2. Register");
-        System.out.println("3. Exit");
-        System.out.print("Pilihan: ");
+        LandingPage landingPage = new LandingPage();
 
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // consume newline
-
-        switch (choice) {
+        /*switch (choice) {
             case 1:
                 login();
                 break;
@@ -72,7 +29,7 @@ public class Main {
             case 3:
                 System.exit(0);
                 break;
-        }
+        }*/
     }
 
     private static void login() {
