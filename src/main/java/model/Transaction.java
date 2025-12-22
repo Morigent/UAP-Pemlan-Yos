@@ -34,6 +34,8 @@ public class Transaction {
         return date; }
     public String getCategory() {
         return category; }
+    public String getDescription() {
+        return description; }
 
     public void setId(String id) {
         this.id = id; }
