@@ -132,7 +132,7 @@ public class LandingPage {
 
             //pengecekan login
             if (loginController.login(userText,pwdText)){
-                //berhasil
+                MainGUI mainGUI = new MainGUI();
             } else {
                 JOptionPane.showMessageDialog(frame, "Username atau Password salah", "Error", JOptionPane.ERROR_MESSAGE);
             }

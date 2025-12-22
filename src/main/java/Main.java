@@ -16,62 +16,7 @@ public class Main {
     public static void main(String[] args) {
         LandingPage landingPage = new LandingPage();
     }
-
-    private static void showLoginMenu() {
-        LandingPage landingPage = new LandingPage();
-
-        /*switch (choice) {
-            case 1:
-                login();
-                break;
-            case 2:
-                register();
-                break;
-            case 3:
-                System.exit(0);
-                break;
-        }*/
-    }
-
-    private static void login() {
-        try {
-            System.out.print("Username: ");
-            String username = scanner.nextLine();
-            System.out.print("Password: ");
-            String password = scanner.nextLine();
-
-            boolean success = authController.login(username, password);
-            if (success) {
-                System.out.println("Login berhasil!");
-            } else {
-                System.out.println("Username atau password salah!");
-            }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private static void register() {
-        try {
-            System.out.print("Username: ");
-            String username = scanner.nextLine();
-            System.out.print("Password: ");
-            String password = scanner.nextLine();
-            System.out.print("Konfirmasi Password: ");
-            String confirmPassword = scanner.nextLine();
-
-            boolean success = authController.register(username, password, confirmPassword);
-            if (success) {
-                System.out.println("Registrasi berhasil! Silakan login.");
-            } else {
-                System.out.println("Username sudah terdaftar!");
-            }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
-    private static void showMainMenu() {
+    public static void showMainMenu() {
         System.out.println("\n=== DASHBOARD ===");
         System.out.println("User: " + authController.getCurrentUser());
         System.out.println("1. Lihat Dashboard");
