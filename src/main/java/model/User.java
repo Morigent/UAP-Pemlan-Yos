@@ -2,16 +2,19 @@ package model;
 
 public class User {
     private String username;
-    private String passwordHash;
-    private String salt;
+    private String password;
+
 
     public User(String username, String passwordHash, String salt) {
         this.username = username;
-        this.passwordHash = passwordHash;
-        this.salt = salt;
+        this.password = passwordHash;
+
     }
 
-    public String getUsername() { return username; }
-    public String getPasswordHash() { return passwordHash; }
-    public String getSalt() { return salt; }
+    public String getUsername() {
+        return username; }
+    public String getPasswordHash() {
+        return password; }
+    public void setPassword(String password) {
+        this.password = password; }
 }
