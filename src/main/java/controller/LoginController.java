@@ -12,6 +12,7 @@ public class LoginController {
             // Validasi input
             if (username == null || username.trim().isEmpty()) {
                 throw new IllegalArgumentException("Username tidak boleh kosong");
+
             }
             if (password == null || password.isEmpty()) {
                 throw new IllegalArgumentException("Password tidak boleh kosong");
