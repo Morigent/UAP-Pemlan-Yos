@@ -1,3 +1,4 @@
+// java
 package GUI;
 
 import Controller.BudgetController;
@@ -15,10 +16,15 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 
 public class MainGUI {
-    // --- 1. WARNA & ATTRIBUTE ---
+
+    private Runnable refreshTransaction;
+
     Color kuning = new Color(255, 204, 0);
     Color unguMuda = new Color(177, 59, 255);
     Color unguTua = new Color(71, 19, 150);
@@ -67,16 +73,16 @@ public class MainGUI {
         dashboardScroll.setBorder(null);
         dashboardScroll.getVerticalScrollBar().setUnitIncrement(16);
 
-        JPanel historyPanel = new JPanel();
-        historyPanel.setBackground(Color.WHITE);
-        historyPanel.add(new JLabel("Halaman History Transaction"));
+        // HISTORY: use transaction data from controller
+        JScrollPane historyScroll = new JScrollPane(createTransactionTable());
+        historyScroll.setBorder(null);
+        historyScroll.getVerticalScrollBar().setUnitIncrement(16);
 
-        JPanel profilePanel = new JPanel();
-        profilePanel.setBackground(Color.WHITE);
-        profilePanel.add(new JLabel("Halaman Profile"));
+        // PROFILE: show current user + dummy data + Logout button
+        JPanel profilePanel = createProfilePanel();
 
         mainBodyPanel.add(dashboardScroll, "DASHBOARD");
-        mainBodyPanel.add(historyPanel, "HISTORY");
+        mainBodyPanel.add(historyScroll, "HISTORY");
         mainBodyPanel.add(profilePanel, "PROFILE");
 
         frame.add(headerPanel, BorderLayout.NORTH);
@@ -98,7 +104,6 @@ public class MainGUI {
         dashboardPanel.setBorder(new EmptyBorder(4,20,0,20)); // Border luar
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // A. HELLO TEXT
         JLabel helloText = new JLabel("Hello, " + authController.getCurrentUser() + "!");
         helloText.setFont(new Font("BEBAS NEUE", Font.BOLD, 34));
         helloText.setForeground(biruTua);
@@ -118,13 +123,12 @@ public class MainGUI {
         gbc.insets = new Insets(0,10,2,10);
         dashboardPanel.add(subTitle, gbc);
 
-        // B. SUMMARY CARDS (KARTU SALDO)
         JPanel cardsContainer = new JPanel(new GridLayout(1, 3, 20, 0));
         cardsContainer.setBackground(bgColor);
 
         double saldo = dashboardController.getSaldoBulanIni();
         double pemasukan = dashboardController.getTotalPemasukanBulanIni();
-        double pengeluaran = dashboardController.getTotalPengeluaranBulanIni();
+        double pengeluaran = dashboardController.getTotalPemasukanBulanIni(); // keep or change as needed
 
         cardsContainer.add(createKartuSaldo("Sisa Saldo", saldo));
         cardsContainer.add(createKartuSaldo("Total Pemasukan", pemasukan));
@@ -140,26 +144,146 @@ public class MainGUI {
         gbc.insets = new Insets(0, 10, 20, 10);
         dashboardPanel.add(budgetingSection, gbc);
 
-        // D. TOMBOL AKSI (ADD/UPDATE/DELETE) - MENGEMBALIKAN KODE ASLI ANDA
+        // D. TOMBOL AKSI (ADD/UPDATE/DELETE)
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         actionPanel.setBackground(bgColor);
 
         Button addBtn = new Button("Add Transaction", unguTua, false);
 
         addBtn.addActionListener(e -> {
-            // Open Add Transaction Dialog
+            JPanel form = new JPanel(new GridLayout(0, 2, 6, 6));
+            JTextField descField = new JTextField();
+            JTextField categoryField = new JTextField();
+            String[] types = {"Income", "Expense"};
+            JComboBox<String> typeBox = new JComboBox<>(types);
+            JTextField amountField = new JTextField();
+
+            form.add(new JLabel("Description:"));
+            form.add(descField);
+            form.add(new JLabel("Category:"));
+            form.add(categoryField);
+            form.add(new JLabel("Type:"));
+            form.add(typeBox);
+            form.add(new JLabel("Amount:"));
+            form.add(amountField);
+
+            int result = JOptionPane.showConfirmDialog(frame, form, "Add Transaction", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    double amount = Double.parseDouble(amountField.getText().trim());
+                    String description = descField.getText().trim();
+                    String category = categoryField.getText().trim();
+                    String type = (String) typeBox.getSelectedItem();
+                    LocalDate date = LocalDate.now();
+
+                    // Run persistence off the EDT
+                    new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                            transactionController.addTransaction(type, category, amount, date, description);
+                            return null;
+                        }
+                        @Override
+                        protected void done() {
+                            try {
+                                get(); // rethrow exceptions if any
+                                if (refreshTransaction != null) refreshTransaction.run();
+                                JOptionPane.showMessageDialog(frame, "Transaction added.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(frame, "Failed to add transaction: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }.execute();
+
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid amount. Please enter a numeric value.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
+
         actionPanel.add(addBtn);
 
         Button updateBtn = new Button("Update", unguTua, false);
         updateBtn.addActionListener(e -> {
-            // Open Update Dialog
+            String idInput = JOptionPane.showInputDialog(frame, "Enter transaction ID to update:", "Update Transaction", JOptionPane.QUESTION_MESSAGE);
+            if (idInput == null || idInput.trim().isEmpty()) return;
+            String txId = idInput.trim();
+
+            JPanel form = new JPanel(new GridLayout(0, 2, 6, 6));
+            JTextField descField = new JTextField();
+            JTextField categoryField = new JTextField();
+            String[] types = {"Income", "Expense"};
+            JComboBox<String> typeBox = new JComboBox<>(types);
+            JTextField amountField = new JTextField();
+
+            form.add(new JLabel("New Description:"));
+            form.add(descField);
+            form.add(new JLabel("New Category:"));
+            form.add(categoryField);
+            form.add(new JLabel("New Type:"));
+            form.add(typeBox);
+            form.add(new JLabel("New Amount:"));
+            form.add(amountField);
+
+            int result = JOptionPane.showConfirmDialog(frame, form, "Update Transaction ID: " + txId, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    double amount = Double.parseDouble(amountField.getText().trim());
+                    String description = descField.getText().trim();
+                    String category = categoryField.getText().trim();
+                    String type = (String) typeBox.getSelectedItem();
+
+                    new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                            transactionController.updateTransaction(txId, type, category, amount, LocalDate.now(), description);
+                            return null;
+                        }
+                        @Override
+                        protected void done() {
+                            try {
+                                get();
+                                if (refreshTransaction != null) refreshTransaction.run();
+                                JOptionPane.showMessageDialog(frame, "Transaction updated.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(frame, "Failed to update transaction: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }.execute();
+
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(frame, "Invalid amount. Please enter a numeric value.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
         actionPanel.add(updateBtn);
 
         Button deleteBtn = new Button("Delete", unguTua, false);
         deleteBtn.addActionListener(e -> {
-            // Open Delete Dialog
+            String idInput = JOptionPane.showInputDialog(frame, "Enter transaction ID to delete:", "Delete Transaction", JOptionPane.QUESTION_MESSAGE);
+            if (idInput == null || idInput.trim().isEmpty()) return;
+
+            String txId = idInput.trim();
+            int confirm = JOptionPane.showConfirmDialog(frame, "Are you sure you want to delete transaction ID: " + txId + "?", "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (confirm == JOptionPane.YES_OPTION) {
+                new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        transactionController.deleteTransaction(txId);
+                        return null;
+                    }
+                    @Override
+                    protected void done() {
+                        try {
+                            get();
+                            if (refreshTransaction != null) refreshTransaction.run();
+                            JOptionPane.showMessageDialog(frame, "Transaction deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(frame, "Failed to delete transaction: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }.execute();
+            }
         });
         actionPanel.add(deleteBtn);
 
@@ -167,7 +291,6 @@ public class MainGUI {
         gbc.insets = new Insets(10, 10, 10, 10);
         dashboardPanel.add(actionPanel, gbc);
 
-        // E. TABLE TRANSAKSI (MENGEMBALIKAN POSISI ASLI)
         JPanel tablePanel = createTransactionTable();
 
         gbc.gridy = 5;
@@ -179,16 +302,11 @@ public class MainGUI {
         return dashboardPanel;
     }
 
-    // ==================================================================================
-    // BAGIAN 2: LOGIKA BUDGETING (SAWERIA STYLE)
-    // ==================================================================================
 
     private JPanel createBudgetingSection() {
-        // Container utama budgeting
         JPanel container = new JPanel(new BorderLayout());
         container.setBackground(bgColor);
 
-        // 1. Header: Judul + Tombol Add
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(bgColor);
         header.setBorder(new EmptyBorder(0, 0, 10, 0));
@@ -200,7 +318,6 @@ public class MainGUI {
         Button addTargetBtn = new Button("+ Add Target", unguTua, true);
         addTargetBtn.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Form Tambah Target Muncul Disini"));
 
-        // Membungkus tombol agar di kanan
         JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         btnWrapper.setBackground(bgColor);
         btnWrapper.add(addTargetBtn);
@@ -210,12 +327,10 @@ public class MainGUI {
 
         container.add(header, BorderLayout.NORTH);
 
-        // 2. List Progress Bar
         JPanel listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setBackground(bgColor);
 
-        // Dummy Data
         listPanel.add(createSingleTargetItem("Macbook Air M2", 18000000, 12500000));
         listPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         listPanel.add(createSingleTargetItem("Liburan Akhir Tahun", 10000000, 2500000));
@@ -225,7 +340,6 @@ public class MainGUI {
         return container;
     }
 
-    // Membuat Item Progress Bar
     private JPanel createSingleTargetItem(String itemName, double targetPrice, double currentAmount) {
         RoundedPanel panel = new RoundedPanel(15, Color.WHITE, Color.WHITE);
         panel.setLayout(new BorderLayout());
@@ -247,7 +361,6 @@ public class MainGUI {
         infoPanel.add(lblName);
         infoPanel.add(lblStatus);
 
-        // Progress Bar (Tengah/Kanan)
         JPanel progressPanel = new JPanel(new BorderLayout());
         progressPanel.setBackground(Color.WHITE);
         progressPanel.setBorder(new EmptyBorder(5, 20, 5, 20));
@@ -255,7 +368,7 @@ public class MainGUI {
         JProgressBar progressBar = new JProgressBar(0, (int)targetPrice);
         progressBar.setValue((int)currentAmount);
         progressBar.setStringPainted(false);
-        progressBar.setForeground(kuning); // Warna Bar
+        progressBar.setForeground(kuning);
         progressBar.setBackground(new Color(230, 230, 230));
         progressBar.setPreferredSize(new Dimension(100, 12));
 
@@ -336,30 +449,93 @@ public class MainGUI {
         JLabel title = new JLabel("Riwayat Transaksi Bulan Ini");
         title.setFont(new Font("BEBAS NEUE", Font.BOLD, 30));
         title.setForeground(unguTua);
-        title.setBorder(new EmptyBorder(10,0,10,0)); // Sesuaikan border
-        panel.add(title, BorderLayout.NORTH);
+        title.setBorder(new EmptyBorder(10,0,10,0));
 
+        // Top area: title + filter bar
+        JPanel top = new JPanel();
+        top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+        top.setBackground(bgColor);
+        top.add(title);
+
+        // Filter controls
+        JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
+        filterBar.setBackground(bgColor);
+
+        String[] filters = {"This Month", "By Month", "By Date Range", "By Category"};
+        JComboBox<String> filterCombo = new JComboBox<>(filters);
+        filterBar.add(new JLabel("Filter:"));
+        filterBar.add(filterCombo);
+
+        // Card panel for inputs
+        JPanel inputCards = new JPanel(new CardLayout());
+        inputCards.setBackground(bgColor);
+
+        // 1) This Month: no inputs
+        JPanel cardThis = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        cardThis.setBackground(bgColor);
+        inputCards.add(cardThis, "THIS");
+
+        // 2) By Month: month + year
+        JPanel cardMonth = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        cardMonth.setBackground(bgColor);
+        String[] months = {
+                "January","February","March","April","May","June",
+                "July","August","September","October","November","December"
+        };
+        JComboBox<String> monthCombo = new JComboBox<>(months);
+        JSpinner yearSpinner = new JSpinner(new SpinnerNumberModel(LocalDate.now().getYear(),
+                2000, LocalDate.now().getYear() + 1, 1));
+        cardMonth.add(new JLabel("Month:"));
+        cardMonth.add(monthCombo);
+        cardMonth.add(new JLabel("Year:"));
+        cardMonth.add(yearSpinner);
+        inputCards.add(cardMonth, "MONTH");
+
+        // 3) By Date Range: start + end (yyyy-MM-dd)
+        JPanel cardDate = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        cardDate.setBackground(bgColor);
+        JTextField startField = new JTextField(10);
+        JTextField endField = new JTextField(10);
+        startField.setToolTipText("yyyy-MM-dd");
+        endField.setToolTipText("yyyy-MM-dd");
+        cardDate.add(new JLabel("From:"));
+        cardDate.add(startField);
+        cardDate.add(new JLabel("To:"));
+        cardDate.add(endField);
+        inputCards.add(cardDate, "DATE");
+
+        // 4) By Category: category dropdown (load from controller)
+        JPanel cardCategory = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        cardCategory.setBackground(bgColor);
+        List<String> categories = List.of();
+        try {
+            categories = transactionController.getAllCategories();
+        } catch (Exception ignored) {}
+        JComboBox<String> categoryCombo;
+        if (categories.isEmpty()) {
+            categoryCombo = new JComboBox<>(new String[]{"No categories"});
+            categoryCombo.setEnabled(false);
+        } else {
+            categoryCombo = new JComboBox<>(categories.toArray(new String[0]));
+        }
+        cardCategory.add(new JLabel("Category:"));
+        cardCategory.add(categoryCombo);
+        inputCards.add(cardCategory, "CATEGORY");
+
+        filterBar.add(inputCards);
+
+        // Apply button
+        JButton applyBtn = new JButton("Apply");
+        filterBar.add(applyBtn);
+
+        top.add(filterBar);
+        panel.add(top, BorderLayout.NORTH);
+
+        // Table setup
         String[] columnNames = {"Tanggal", "Kategori", "Deskripsi", "Tipe", "Jumlah"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            @Override public boolean isCellEditable(int row, int column) { return false; }
         };
-
-        DecimalFormat df = new DecimalFormat("#,###.00");
-        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd MMM yyyy");
-
-        if(transactionController != null) {
-            for (Transaction t : transactionController.getTransactionsThisMonth()) {
-                Object[] row = {
-                        t.getDate().format(dateFmt),
-                        t.getCategory(),
-                        t.getDescription(),
-                        t.getType(),
-                        "Rp " + df.format(t.getAmount())
-                };
-                model.addRow(row);
-            }
-        }
 
         JTable table = new JTable(model);
         table.setRowHeight(30);
@@ -386,6 +562,132 @@ public class MainGUI {
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         panel.add(scrollPane, BorderLayout.CENTER);
 
+        // Helper to update table rows
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd MMM yyyy");
+        DecimalFormat df = new DecimalFormat("#,###.00");
+        Runnable loadThisMonth = () -> {
+            try {
+                List<Transaction> list = transactionController.getTransactionsThisMonth();
+                model.setRowCount(0);
+                for (Transaction t : list) {
+                    model.addRow(new Object[]{
+                            t.getDate().format(dateFmt),
+                            t.getCategory(),
+                            t.getDescription(),
+                            t.getType(),
+                            "Rp " + df.format(t.getAmount())
+                    });
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Failed to load transactions: " + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        };
+
+        // Card switching on filter selection
+        filterCombo.addActionListener(e -> {
+            String sel = (String) filterCombo.getSelectedItem();
+            CardLayout cl = (CardLayout) inputCards.getLayout();
+            if ("By Month".equals(sel)) cl.show(inputCards, "MONTH");
+            else if ("By Date Range".equals(sel)) cl.show(inputCards, "DATE");
+            else if ("By Category".equals(sel)) cl.show(inputCards, "CATEGORY");
+            else cl.show(inputCards, "THIS");
+        });
+
+        // Apply button action
+        applyBtn.addActionListener(e -> {
+            String sel = (String) filterCombo.getSelectedItem();
+            try {
+                List<Transaction> results;
+                switch (sel) {
+                    case "By Month":
+                        int month = monthCombo.getSelectedIndex() + 1;
+                        int year = (int) yearSpinner.getValue();
+                        results = transactionController.getTransactionsByMonth(month, year);
+                        break;
+                    case "By Date Range":
+                        LocalDate start = LocalDate.parse(startField.getText().trim());
+                        LocalDate end = LocalDate.parse(endField.getText().trim());
+                        results = transactionController.getTransactionsByDateRange(start, end);
+                        break;
+                    case "By Category":
+                        if (categoryCombo.isEnabled()) {
+                            String cat = (String) categoryCombo.getSelectedItem();
+                            results = transactionController.getTransactionsByCategory(cat);
+                        } else {
+                            results = List.of();
+                        }
+                        break;
+                    default: // This Month
+                        results = transactionController.getTransactionsThisMonth();
+                        break;
+                }
+                // update table
+                model.setRowCount(0);
+                for (Transaction t : results) {
+                    model.addRow(new Object[]{
+                            t.getDate().format(dateFmt),
+                            t.getCategory(),
+                            t.getDescription(),
+                            t.getType(),
+                            "Rp " + df.format(t.getAmount())
+                    });
+                }
+            } catch (DateTimeParseException dtpe) {
+                JOptionPane.showMessageDialog(frame, "Invalid date format. Use yyyy-MM-dd",
+                        "Invalid Input", JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Failed to fetch transactions: " + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // initial load (this month)
+        loadThisMonth.run();
+
+        return panel;
+    }
+
+    // Profile panel: shows current user, dummy details and a Logout button
+    private JPanel createProfilePanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new EmptyBorder(20,20,20,20));
+
+        JPanel info = new JPanel();
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+        info.setBackground(Color.WHITE);
+
+        JLabel nameLabel = new JLabel("Name: " + (authController.getCurrentUser() != null ? authController.getCurrentUser() : "Guest"));
+        nameLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
+        nameLabel.setForeground(unguTua);
+        info.add(nameLabel);
+        info.add(Box.createRigidArea(new Dimension(0,10)));
+
+        JLabel emailLabel = new JLabel("Email: user@example.com"); // dummy
+        emailLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        info.add(emailLabel);
+        info.add(Box.createRigidArea(new Dimension(0,8)));
+
+        JLabel memberLabel = new JLabel("Member since: 2024"); // dummy
+        memberLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        info.add(memberLabel);
+
+        panel.add(info, BorderLayout.CENTER);
+
+        // Logout button using Button class
+        Button logoutBtn = new Button("Logout", unguTua, false);
+        logoutBtn.addActionListener(e -> {
+            // If you have a authController.logout() method, call it here.
+            frame.dispose();
+            System.exit(0);
+        });
+
+        JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnWrap.setBackground(Color.WHITE);
+        btnWrap.add(logoutBtn);
+
+        panel.add(btnWrap, BorderLayout.SOUTH);
         return panel;
     }
 }
