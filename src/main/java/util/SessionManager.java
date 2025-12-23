@@ -4,7 +4,9 @@ public class SessionManager {
     private static SessionManager instance;
     private String currentUser;
 
-    private SessionManager() {}
+    private SessionManager() {
+        // Private constructor
+    }
 
     public static SessionManager getInstance() {
         if (instance == null) {
@@ -15,19 +17,19 @@ public class SessionManager {
 
     public void login(String username) {
         this.currentUser = username;
-        System.out.println("User logged in: " + username);
+        System.out.println("User " + username + " logged in");
     }
 
     public void logout() {
+        System.out.println("User " + currentUser + " logged out");
         this.currentUser = null;
-        System.out.println("User logged out");
-    }
-
-    public String getCurrentUser() {
-        return currentUser;
     }
 
     public boolean isLoggedIn() {
         return currentUser != null;
+    }
+
+    public String getCurrentUser() {
+        return currentUser;
     }
 }
