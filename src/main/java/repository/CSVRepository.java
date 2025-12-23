@@ -4,15 +4,82 @@ import java.io.*;
 import java.util.*;
 
 public class CSVRepository {
+    // Method baru: Find with multiple criteria
+    public List<String[]> find(String filePath, Map<String, String> criteria) {
+        List<String[]> allData = read(filePath);
+        List<String[]> result = new ArrayList<>();
 
-    // Method read dengan parameter file
+        for (String[] row : allData) {
+            boolean matches = true;
+
+            for (Map.Entry<String, String> entry : criteria.entrySet()) {
+                int columnIndex = Integer.parseInt(entry.getKey());
+                if (row.length <= columnIndex || !row[columnIndex].equals(entry.getValue())) {
+                    matches = false;
+                    break;
+                }
+            }
+
+            if (matches) {
+                result.add(row);
+            }
+        }
+
+        return result;
+    }
+
+    // Method baru: Count rows
+    public int count(String filePath) {
+        return read(filePath).size();
+    }
+
+    // Method baru: Get distinct values
+    public List<String> getDistinctValues(String filePath, int columnIndex) {
+        List<String[]> allData = read(filePath);
+        Set<String> distinctValues = new HashSet<>();
+
+        for (String[] row : allData) {
+            if (row.length > columnIndex) {
+                distinctValues.add(row[columnIndex]);
+            }
+        }
+
+        return new ArrayList<>(distinctValues);
+    }
+
+    // Method baru: Backup file
+    public boolean backup(String filePath) {
+        try {
+            File original = new File(filePath);
+            if (!original.exists()) return false;
+
+            String backupPath = filePath + ".backup";
+            File backup = new File(backupPath);
+
+            try (FileInputStream fis = new FileInputStream(original);
+                 FileOutputStream fos = new FileOutputStream(backup)) {
+
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = fis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, length);
+                }
+            }
+
+            return true;
+        } catch (IOException e) {
+            System.err.println("Backup error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Baca file CSV dan kembalikan list baris sebagai array kolom
     public List<String[]> read(String filePath) {
         List<String[]> data = new ArrayList<>();
         File file = new File(filePath);
 
-        // Jika file tidak ada, return list kosong
         if (!file.exists()) {
-            System.out.println("File tidak ditemukan: " + filePath);
+            // Jika file belum ada, kembalikan list kosong
             return data;
         }
 
@@ -21,8 +88,7 @@ public class CSVRepository {
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (!line.isEmpty()) {
-                    // Handle empty values
-                    String[] row = line.split(",", -1); // -1 untuk keep empty values
+                    String[] row = line.split(",", -1);
                     data.add(row);
                 }
             }
@@ -30,9 +96,11 @@ public class CSVRepository {
             System.err.println("Error reading file " + filePath + ": " + e.getMessage());
             e.printStackTrace();
         }
+
         return data;
     }
 
+    // Tambah satu baris ke file (append)
     public void append(String filePath, String line) {
         ensureFileExists(filePath);
         try (FileWriter fw = new FileWriter(filePath, true);
@@ -45,6 +113,7 @@ public class CSVRepository {
         }
     }
 
+    // Tulis ulang seluruh file dengan data baru
     public void writeAll(String filePath, List<String[]> data) {
         ensureFileExists(filePath);
         try (PrintWriter pw = new PrintWriter(new FileWriter(filePath))) {
@@ -57,57 +126,54 @@ public class CSVRepository {
         }
     }
 
-    public void deleteById(String filePath, String id) {
+    // Hapus baris berdasarkan id di kolom pertama
+    public boolean deleteById(String filePath, String id) {
         List<String[]> allData = read(filePath);
-        if (allData.isEmpty()) return;
-
         List<String[]> newData = new ArrayList<>();
-        int idColumnIndex = 0; // Asumsikan ID ada di kolom pertama
+        boolean found = false;
 
         for (String[] row : allData) {
-            if (row.length > 0 && !row[idColumnIndex].equals(id)) {
+            if (row.length > 0 && row[0].equals(id)) {
+                found = true;
+                System.out.println("Deleting: " + Arrays.toString(row));
+            } else {
                 newData.add(row);
             }
         }
 
-        writeAll(filePath, newData);
+        if (found) {
+            writeAll(filePath, newData);
+            return true;
+        }
+
+        return false;
     }
 
+    // Update baris yang memiliki id di kolom pertama
     public void update(String filePath, String id, String[] newData) {
         List<String[]> allData = read(filePath);
         if (allData.isEmpty()) return;
 
-        List<String[]> updatedData = new ArrayList<>();
-        int idColumnIndex = 0; // Asumsikan ID ada di kolom pertama
-
+        List<String[]> updated = new ArrayList<>();
         for (String[] row : allData) {
-            if (row.length > 0 && row[idColumnIndex].equals(id)) {
-                updatedData.add(newData);
+            if (row.length > 0 && row[0].equals(id)) {
+                updated.add(newData);
             } else {
-                updatedData.add(row);
+                updated.add(row);
             }
         }
 
-        writeAll(filePath, updatedData);
+        writeAll(filePath, updated);
     }
 
+    // Pastikan file dan folder ada
     private void ensureFileExists(String filePath) {
         File file = new File(filePath);
         if (!file.exists()) {
             try {
-                // Buat directory jika belum ada
-                File parentDir = file.getParentFile();
-                if (parentDir != null && !parentDir.exists()) {
-                    parentDir.mkdirs();
-                }
-
-                // Buat file dan handle hasilnya
-                boolean fileCreated = file.createNewFile();
-                if (fileCreated) {
-                    System.out.println("File created: " + filePath);
-                } else {
-                    System.out.println("File already exists or cannot be created: " + filePath);
-                }
+                File parent = file.getParentFile();
+                if (parent != null && !parent.exists()) parent.mkdirs();
+                file.createNewFile();
             } catch (IOException e) {
                 System.err.println("Error creating file " + filePath + ": " + e.getMessage());
                 e.printStackTrace();
@@ -115,21 +181,7 @@ public class CSVRepository {
         }
     }
 
-    // Method helper untuk mencari data
-    public List<String[]> findByColumn(String filePath, int columnIndex, String value) {
-        List<String[]> allData = read(filePath);
-        List<String[]> result = new ArrayList<>();
-
-        for (String[] row : allData) {
-            if (row.length > columnIndex && row[columnIndex].equals(value)) {
-                result.add(row);
-            }
-        }
-
-        return result;
-    }
-
-    // Method khusus untuk users.csv
+    // Helper khusus users
     public List<String[]> readUsers() {
         return read("users.csv");
     }
@@ -138,7 +190,7 @@ public class CSVRepository {
         append("users.csv", username + "," + password);
     }
 
-    // Method khusus untuk transactions.csv
+    // Helpers khusus transactions/budgets (konvensi pemanggilan di service)
     public List<String[]> readTransactions() {
         return read("transactions.csv");
     }
@@ -147,12 +199,23 @@ public class CSVRepository {
         append("transactions.csv", transactionData);
     }
 
-    // Method khusus untuk budgets.csv
     public List<String[]> readBudgets() {
         return read("budgets.csv");
     }
 
-    public void appendBudget(String budgetData) {
-        append("budgets.csv", budgetData);
+    public void appendBudget(String line) {
+        append("budgets.csv", line);
+    }
+
+    // Find by column
+    public List<String[]> findByColumn(String filePath, int columnIndex, String value) {
+        List<String[]> all = read(filePath);
+        List<String[]> result = new ArrayList<>();
+        for (String[] row : all) {
+            if (row.length > columnIndex && row[columnIndex].equals(value)) {
+                result.add(row);
+            }
+        }
+        return result;
     }
 }

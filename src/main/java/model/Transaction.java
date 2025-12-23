@@ -49,4 +49,8 @@ public class Transaction {
         this.date = date; }
     public void setDescription(String description) {
         this.description = description; }
+
+    public void setUsername(String username) {
+    }
+
 }
