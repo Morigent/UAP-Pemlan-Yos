@@ -33,8 +33,8 @@ public class TransactionController {
             return transaction.getId();
 
         } catch (Exception e) {
-            System.err.println("Add transaction error: " + e.getMessage());
-            throw new RuntimeException("Failed to add transaction: " + e.getMessage(), e);
+            System.err.println("tambah transaksi error: " + e.getMessage());
+            throw new RuntimeException("gagal tambah transaksi: " + e.getMessage(), e);
         }
     }
 
@@ -66,7 +66,7 @@ public class TransactionController {
     public List<Transaction> getTransactionsByCategory(String category) {
         validateSession();
         if (category == null || category.trim().isEmpty()) {
-            throw new IllegalArgumentException("Category cannot be empty");
+            throw new IllegalArgumentException("kategori tidak boleh kosong");
         }
         return transactionService.getTransactionsByCategory(getCurrentUsername(), category);
     }
@@ -74,7 +74,7 @@ public class TransactionController {
     public List<Transaction> getTransactionsByType(String type) {
         validateSession();
         if (!"INCOME".equalsIgnoreCase(type) && !"EXPENSE".equalsIgnoreCase(type)) {
-            throw new IllegalArgumentException("Type must be INCOME or EXPENSE");
+            throw new IllegalArgumentException("Tipe  income atau expense");
         }
         return transactionService.getTransactionsByType(getCurrentUsername(), type.toUpperCase());
     }
@@ -82,14 +82,14 @@ public class TransactionController {
     public Transaction getTransactionById(String transactionId) {
         validateSession();
         if (transactionId == null || transactionId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Transaction ID cannot be empty");
+            throw new IllegalArgumentException("transaksi id tidak boleh kosong");
         }
 
         Transaction transaction = transactionService.getTransactionById(
                 getCurrentUsername(), transactionId);
 
         if (transaction == null) {
-            throw new RuntimeException("Transaction not found or access denied");
+            throw new RuntimeException("transaksi tidak ditemukan");
         }
 
         return transaction;
@@ -129,8 +129,8 @@ public class TransactionController {
             return transactionService.updateTransaction(getCurrentUsername(), updated);
 
         } catch (Exception e) {
-            System.err.println("Update transaction error: " + e.getMessage());
-            throw new RuntimeException("Failed to update transaction: " + e.getMessage(), e);
+            System.err.println("Update transaksi error: " + e.getMessage());
+            throw new RuntimeException("gagal update transaksi: " + e.getMessage(), e);
         }
     }
 
@@ -140,14 +140,14 @@ public class TransactionController {
 
         try {
             if (transactionId == null || transactionId.trim().isEmpty()) {
-                throw new IllegalArgumentException("Transaction ID cannot be empty");
+                throw new IllegalArgumentException("Transaksi ID tidak boleh kosong");
             }
 
             return transactionService.deleteTransaction(getCurrentUsername(), transactionId);
 
         } catch (Exception e) {
-            System.err.println("Delete transaction error: " + e.getMessage());
-            throw new RuntimeException("Failed to delete transaction: " + e.getMessage(), e);
+            System.err.println("transaksi error: " + e.getMessage());
+            throw new RuntimeException("gagal menghapus transaksi: " + e.getMessage(), e);
         }
     }
 
@@ -156,14 +156,14 @@ public class TransactionController {
 
         try {
             if (category == null || category.trim().isEmpty()) {
-                throw new IllegalArgumentException("Category cannot be empty");
+                throw new IllegalArgumentException("kategori tidak boleh kosong");
             }
 
             return transactionService.deleteTransactionsByCategory(getCurrentUsername(), category);
 
         } catch (Exception e) {
-            System.err.println("Delete transactions by category error: " + e.getMessage());
-            throw new RuntimeException("Failed to delete transactions: " + e.getMessage(), e);
+            System.err.println("hapus transaksi error: " + e.getMessage());
+            throw new RuntimeException("gagal hapus transaksi: " + e.getMessage(), e);
         }
     }
 
@@ -204,7 +204,7 @@ public class TransactionController {
         return transactionService.getYearlySummary(getCurrentUsername(), year);
     }
 
-    // UTILITY METHODS
+
     public List<String> getAllCategories() {
         validateSession();
         return transactionService.getAllCategories(getCurrentUsername());
@@ -226,16 +226,16 @@ public class TransactionController {
 
         try {
             if (amount <= 0) {
-                throw new IllegalArgumentException("Transfer amount must be positive");
+                throw new IllegalArgumentException("Jumlah transfer harus positif");
             }
             if (fromCategory == null || fromCategory.trim().isEmpty()) {
-                throw new IllegalArgumentException("Source category cannot be empty");
+                throw new IllegalArgumentException("Kategori sumber tidak boleh kosong");
             }
             if (toCategory == null || toCategory.trim().isEmpty()) {
-                throw new IllegalArgumentException("Destination category cannot be empty");
+                throw new IllegalArgumentException("Kategori tujuan tidak boleh kosong");
             }
             if (fromCategory.equalsIgnoreCase(toCategory)) {
-                throw new IllegalArgumentException("Source and destination categories cannot be the same");
+                throw new IllegalArgumentException("Kategori sumber dan tujuan tidak bisa sama");
             }
 
             return transactionService.transferBalance(
@@ -247,8 +247,8 @@ public class TransactionController {
             );
 
         } catch (Exception e) {
-            System.err.println("Balance transfer error: " + e.getMessage());
-            throw new RuntimeException("Failed to transfer balance: " + e.getMessage(), e);
+            System.err.println("transfer error: " + e.getMessage());
+            throw new RuntimeException("Failed transfer: " + e.getMessage(), e);
         }
     }
 
@@ -280,46 +280,46 @@ public class TransactionController {
 
     private void validateTransactionData(String type, String category, double amount, LocalDate date) {
         if (type == null || (!"INCOME".equalsIgnoreCase(type) && !"EXPENSE".equalsIgnoreCase(type))) {
-            throw new IllegalArgumentException("Type must be INCOME or EXPENSE");
+            throw new IllegalArgumentException("tipe INCOME / EXPENSE");
         }
         if (category == null || category.trim().isEmpty()) {
-            throw new IllegalArgumentException("Category cannot be empty");
+            throw new IllegalArgumentException("kategori tidak boleh kosong");
         }
         if (amount <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than 0");
+            throw new IllegalArgumentException("Jumlah harus lebih besar dari 0");
         }
         if (date == null) {
-            throw new IllegalArgumentException("Date cannot be null");
+            throw new IllegalArgumentException("tanggal tidak boleh kosong");
         }
         if (date.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("Date cannot be in the future");
+            throw new IllegalArgumentException("tanggal tidak valid");
         }
     }
 
     private void validateMonthYear(int month, int year) {
         if (month < 1 || month > 12) {
-            throw new IllegalArgumentException("Month must be between 1 and 12");
+            throw new IllegalArgumentException("Bulan harus antara 1 dan 12");
         }
         if (year < 2000 || year > LocalDate.now().getYear() + 1) {
-            throw new IllegalArgumentException("Year is not valid");
+            throw new IllegalArgumentException("tahun tidak valid");
         }
     }
 
     private void validateDateRange(LocalDate start, LocalDate end) {
         if (start == null || end == null) {
-            throw new IllegalArgumentException("Start and end dates cannot be null");
+            throw new IllegalArgumentException("Tanggal mulai dan berakhir tidak boleh kosong ");
         }
         if (start.isAfter(end)) {
-            throw new IllegalArgumentException("Start date must be before end date");
+            throw new IllegalArgumentException("Tanggal mulai harus sebelum tanggal akhir");
         }
         if (end.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("End date cannot be in the future");
+            throw new IllegalArgumentException("Tanggal akhir tidak valid");
         }
     }
 
     private void validateYear(int year) {
         if (year < 2000 || year > LocalDate.now().getYear() + 1) {
-            throw new IllegalArgumentException("Year is not valid");
+            throw new IllegalArgumentException("tahun tidak valid");
         }
     }
 }

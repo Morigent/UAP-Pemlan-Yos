@@ -13,7 +13,7 @@ public class LoginService {
             }
         }
 
-        // Simpan password langsung (tanpa hash)
+        // Simpan password
         repo.appendUser(username, password);
         return true;
     }
@@ -21,7 +21,6 @@ public class LoginService {
     public boolean login(String username, String password) {
         for (String[] row : repo.readUsers()) {
             if (row.length >= 2 && row[0].equals(username)) {
-                // Bandingkan password langsung
                 return row[1].equals(password);
             }
         }
@@ -41,14 +40,12 @@ public class LoginService {
     // Method untuk update password
     public boolean updatePassword(String username, String newPassword) {
         try {
-            // Baca semua user
             java.util.List<String[]> allUsers = repo.readUsers();
             java.util.List<String[]> newUsers = new java.util.ArrayList<>();
             boolean found = false;
 
             for (String[] row : allUsers) {
                 if (row.length >= 1 && row[0].equals(username)) {
-                    // Update password
                     newUsers.add(new String[]{username, newPassword});
                     found = true;
                 } else {
@@ -57,7 +54,6 @@ public class LoginService {
             }
 
             if (found) {
-                // Tulis kembali ke file
                 repo.writeAll("users.csv", newUsers);
                 return true;
             }

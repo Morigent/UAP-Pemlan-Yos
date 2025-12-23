@@ -35,7 +35,7 @@ public class DashboardController {
 
     public List<Transaction> getTransaksiTerbaru(int limit) {
         validateSession();
-        if (limit <= 0) throw new IllegalArgumentException("Limit must be greater than 0");
+        if (limit <= 0) throw new IllegalArgumentException("transaksi > 0");
         String username = getCurrentUsername();
         return dashboardService.getTransaksiTerbaru(username, limit);
     }
