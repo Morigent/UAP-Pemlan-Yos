@@ -1,3 +1,3 @@
-d8a6a504-f581-4841-90cb-debc41b671fd,wisnu,EXPENSE,makanan,200000.0,2025-12-22,makan siang
-TXN-8A874613,system,INCOME,Food,1232123.0,2025-12-24,sad
-TXN-216CF06F,system,INCOME,test,10000.0,2025-12-24,beli makan
+TXN001,wisnu,EXPENSE,makanan,200000.0,2025-12-22,makan siang
+TXN002,wisnu,INCOME,salary,5000000.0,2025-12-01,gaji Desember
+TXN-4BB1CEF0,wisnu,INCOME,makan,3.4444524E7,2025-12-24,makan malam

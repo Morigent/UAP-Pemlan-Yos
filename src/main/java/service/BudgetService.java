@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class BudgetService {
     private CSVRepository repo = new CSVRepository();
 
-    // Method baru: Update existing budget
+    // Update budget
     public boolean updateBudget(String username, String category,
                                 int month, int year, double newLimit) {
         if (newLimit <= 0) {
@@ -46,7 +46,7 @@ public class BudgetService {
         return found;
     }
 
-    // Method baru: Get specific budget
+    // budget spesifik
     public Budget getBudget(String username, String category, int month, int year) {
         return getBudgets(username).stream()
                 .filter(b -> b.getCategory().equals(category) &&
@@ -56,19 +56,19 @@ public class BudgetService {
                 .orElse(null);
     }
 
-    // Method baru: Check if budget exists
+    // Check budget
     public boolean budgetExists(String username, String category, int month, int year) {
         return getBudget(username, category, month, year) != null;
     }
 
-    // Method baru: Get total budget for month
+    // budget per bulan
     public double getTotalBudgetForMonth(String username, int month, int year) {
         return getBudgetsForMonth(username, month, year).stream()
                 .mapToDouble(Budget::getLimit)
                 .sum();
     }
 
-    // Method baru: Get categories with budget
+    // buget kategori
     public List<String> getBudgetCategories(String username, int month, int year) {
         return getBudgetsForMonth(username, month, year).stream()
                 .map(Budget::getCategory)
