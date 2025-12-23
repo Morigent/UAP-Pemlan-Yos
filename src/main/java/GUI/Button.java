@@ -100,7 +100,7 @@ public class Button extends JButton {
             }
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
 
-            setForeground(Color.WHITE); // Teks putih
+            setForeground(Color.WHITE);
         }
 
         g2.dispose();
