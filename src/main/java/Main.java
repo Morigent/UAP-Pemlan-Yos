@@ -1,6 +1,6 @@
 
 //import Controller;
-import Controller.*;
+import controller.*;
 import GUI.LandingPage;
 
 import java.time.LocalDate;
@@ -109,7 +109,36 @@ public class Main {
                     var transactions = transactionController.getTransactionsThisMonth();
                     displayTransactions(transactions);
                     break;
-                // ... implementasi lainnya
+                case 2:
+                    // Bulan lalu
+                    java.time.LocalDate now = java.time.LocalDate.now();
+                    java.time.LocalDate lastMonth = now.minusMonths(1);
+                    var transactionsLast = transactionController.getTransactionsByMonth(
+                            lastMonth.getMonthValue(), lastMonth.getYear());
+                    displayTransactions(transactionsLast);
+                    break;
+                case 3:
+                    // Custom range: minta tanggal mulai dan selesai dalam format yyyy-MM-dd
+                    System.out.print("Tanggal mulai (yyyy-MM-dd): ");
+                    String startStr = scanner.nextLine();
+                    System.out.print("Tanggal akhir (yyyy-MM-dd): ");
+                    String endStr = scanner.nextLine();
+
+                    java.time.LocalDate startDate;
+                    java.time.LocalDate endDate;
+                    try {
+                        startDate = java.time.LocalDate.parse(startStr);
+                        endDate = java.time.LocalDate.parse(endStr);
+                    } catch (java.time.format.DateTimeParseException ex) {
+                        System.out.println("Format tanggal tidak valid. Gunakan yyyy-MM-dd.");
+                        return;
+                    }
+
+                    var transactionsRange = transactionController.getTransactionsByDateRange(startDate, endDate);
+                    displayTransactions(transactionsRange);
+                    break;
+                default:
+                    System.out.println("Pilihan tidak valid.");
             }
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());

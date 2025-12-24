@@ -1,4 +1,4 @@
-package Controller;
+package controller;
 
 import service.LoginService;
 import util.SessionManager;

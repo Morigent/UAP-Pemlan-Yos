@@ -1,0 +1,9 @@
+TXN_B01,wisnu,EXPENSE,makanan,45000.0,2025-11-03,sarapan
+TXN_B02,wisnu,EXPENSE,transport,75000.0,2025-11-15,bensin motor
+TXN_B03,wisnu,INCOME,bonus,750000.0,2025-11-25,bonus proyek
+TXN_B04,anna,INCOME,freelance,1200000.0,2025-11-05,proyek desain
+TXN_B05,budi,EXPENSE,groceries,350000.0,2025-11-20,belanja mingguan
+TXN_B06,wisnu,EXPENSE,utilities,250000.0,2025-11-10,listrik
+TXN_B07,budi,EXPENSE,transport,60000.0,2025-11-27,kereta pulang
+TXN_B08,anna,EXPENSE,other,50000.0,2025-11-11,keperluan kantor
+

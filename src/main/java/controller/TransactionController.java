@@ -1,4 +1,4 @@
-package Controller;
+package controller;
 
 import model.Transaction;
 import service.TransactionService;
@@ -7,6 +7,7 @@ import util.SessionManager;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.io.File;
 
 public class TransactionController {
     private TransactionService transactionService = new TransactionService();
@@ -54,7 +55,20 @@ public class TransactionController {
     public List<Transaction> getTransactionsByMonth(int month, int year) {
         validateSession();
         validateMonthYear(month, year);
-        return transactionService.getTransactions(getCurrentUsername(), month, year);
+        String username = getCurrentUsername();
+
+
+        File bulanLalu = new File("bulanlalu.csv");
+        if (bulanLalu.exists()) {
+            try {
+                return transactionService.getTransactions(username, month, year, "bulanlalu.csv");
+            } catch (Exception e) {
+                System.err.println("Gagal baca bulanlalu.csv: " + e.getMessage());
+
+            }
+        }
+
+        return transactionService.getTransactions(username, month, year);
     }
 
     public List<Transaction> getTransactionsByDateRange(LocalDate start, LocalDate end) {

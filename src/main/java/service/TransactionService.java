@@ -48,6 +48,17 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
+    // NEW: allow reading transactions from a specific CSV file (e.g., bulanlalu.csv)
+    public List<Transaction> getTransactions(String username, int month, int year, String filePath) {
+        List<String[]> rows = repo.read(filePath);
+        return rows.stream()
+                .filter(r -> r.length >= 6 && r[1].equals(username))
+                .map(this::parseTransaction)
+                .filter(t -> t.getDate().getMonthValue() == month && t.getDate().getYear() == year)
+                .sorted((a, b) -> b.getDate().compareTo(a.getDate()))
+                .collect(Collectors.toList());
+    }
+
     public List<Transaction> getTransactionsByDateRange(String username, LocalDate start, LocalDate end) {
         return getAllTransactions(username).stream()
                 .filter(t -> !t.getDate().isBefore(start) && !t.getDate().isAfter(end))
@@ -271,8 +282,10 @@ public class TransactionService {
     }
 
     private String generateTransactionId() {
-        return "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        int random = (int) (Math.random() * 1000);
+        return String.format("%03d", random);
     }
+
 
     private Transaction parseTransaction(String[] row) {
         try {

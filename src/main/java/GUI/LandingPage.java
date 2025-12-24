@@ -1,6 +1,6 @@
 package GUI;
 
-import Controller.LoginController;
+import controller.LoginController;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -21,14 +21,16 @@ public class LandingPage {
     public LandingPage () {
         frame = new JFrame("Moneeeyyyyyy");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setSize(600, 600);
         frame.setLayout(new BorderLayout());
         frame.setResizable(false);
 
         JPanel header = new JPanel(new GridBagLayout());
+        header.setBackground(new Color(252, 252, 255));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill = GridBagConstraints.CENTER;
         header.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JLabel title = new JLabel("Welcome to Moneeeyyyyyy");
@@ -123,7 +125,7 @@ public class LandingPage {
         header.add(registerBtn, gbc);
 
         header.add(title);
-        frame.add(header, BorderLayout.NORTH);
+        frame.add(header, BorderLayout.CENTER);
 
         loginBtn.addActionListener( e -> {
             LoginController loginController = new LoginController();
@@ -155,7 +157,8 @@ public class LandingPage {
         JFrame frame = new JFrame("Register Page");
         JPanel panel = new JPanel(new GridBagLayout());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 300);
+        frame.setLocationRelativeTo(null);
+        frame.setSize(600, 600);
         frame.setLayout(new BorderLayout());
         frame.setResizable(false);
 
