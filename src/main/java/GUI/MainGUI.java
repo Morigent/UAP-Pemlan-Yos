@@ -24,6 +24,11 @@ import java.util.List;
 public class MainGUI {
 
     private Runnable refreshTransaction;
+    private JLabel lblSaldo;
+    private JLabel lblPemasukan;
+    private JLabel lblPengeluaran;
+
+    private DefaultTableModel transactionTableModel;
 
     Color kuning = new Color(255, 204, 0);
     Color unguMuda = new Color(177, 59, 255);
@@ -129,10 +134,10 @@ public class MainGUI {
         double saldo = dashboardController.getSaldoBulanIni();
         double pemasukan = dashboardController.getTotalPemasukanBulanIni();
         double pengeluaran = dashboardController.getTotalPemasukanBulanIni(); // keep or change as needed
-
+        //perbaikan agar update selalu realtime
         cardsContainer.add(createKartuSaldo("Sisa Saldo", saldo));
-        cardsContainer.add(createKartuSaldo("Total Pemasukan", pemasukan));
-        cardsContainer.add(createKartuSaldo("Total Pengeluaran", pengeluaran));
+        cardsContainer.add(createKartuSaldo("Total Pemasukan", dashboardController.getTotalPemasukanBulanIni()));
+        cardsContainer.add(createKartuSaldo("Total Pengeluaran", dashboardController.getTotalPengeluaranBulanIni()));
 
         gbc.gridy = 2;
         gbc.insets = new Insets(20, 10, 20, 10);
@@ -188,15 +193,15 @@ public class MainGUI {
                             try {
                                 get(); // rethrow exceptions if any
                                 if (refreshTransaction != null) refreshTransaction.run();
-                                JOptionPane.showMessageDialog(frame, "Transaction added.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                                JOptionPane.showMessageDialog(frame, "Transaksi berhasil .", "Success", JOptionPane.INFORMATION_MESSAGE);
                             } catch (Exception ex) {
-                                JOptionPane.showMessageDialog(frame, "Failed to add transaction: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(frame, "gagal transaksi : " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                             }
                         }
                     }.execute();
 
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(frame, "Invalid amount. Please enter a numeric value.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "error tolong input angka .", "Input Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -316,7 +321,7 @@ public class MainGUI {
         title.setForeground(unguTua);
 
         Button addTargetBtn = new Button("+ Add Target", unguTua, true);
-        addTargetBtn.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Form Tambah Target Muncul Disini"));
+        addTargetBtn.addActionListener(e -> JOptionPane.showMessageDialog(frame, "next vesion hehehe"));
 
         JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         btnWrapper.setBackground(bgColor);
