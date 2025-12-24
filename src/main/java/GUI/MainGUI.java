@@ -398,8 +398,7 @@ public class MainGUI {
         for (Budget b : budgets) {
             double currentAmount = 0;
             try {
-               // currentAmount = budgetController.getTotalExpenseForCategoryMonth(
-                //   b.getCategory(), b.getMonth(), b.getYear());
+               // Cooming soon
             } catch (Exception ignored) {}
             listPanel.add(createSingleTargetItem(b.getCategory(), b.getLimit(), currentAmount));
             listPanel.add(Box.createRigidArea(new Dimension(0, 15)));
