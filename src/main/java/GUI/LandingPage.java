@@ -1,6 +1,6 @@
 package GUI;
 
-import Controller.LoginController;
+import controller.LoginController;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

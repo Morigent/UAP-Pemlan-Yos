@@ -1,6 +1,6 @@
 
 //import Controller;
-import Controller.*;
+import controller.*;
 import GUI.LandingPage;
 
 import java.time.LocalDate;

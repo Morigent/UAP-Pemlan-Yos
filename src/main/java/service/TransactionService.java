@@ -282,8 +282,10 @@ public class TransactionService {
     }
 
     private String generateTransactionId() {
-        return "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        int random = (int) (Math.random() * 1000);
+        return String.format("%03d", random);
     }
+
 
     private Transaction parseTransaction(String[] row) {
         try {

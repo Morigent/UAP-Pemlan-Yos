@@ -1,11 +1,10 @@
 // java
 package GUI;
 
-import Controller.BudgetController;
-import Controller.DashboardController;
-import Controller.LoginController;
-import Controller.TransactionController;
-import model.Budget;
+import controller.BudgetController;
+import controller.DashboardController;
+import controller.LoginController;
+import controller.TransactionController;
 import model.Transaction;
 
 import javax.swing.*;
@@ -57,7 +56,7 @@ public class MainGUI {
         headerPanel.setBorder(new EmptyBorder(1,10,1,10));
 
         // Membuat Text Menu Header
-        navDashboard = createNavLabel("Dashboard", true);
+        navDashboard = createNavLabel("Dashboard", true); // Aktif (Kuning) saat pertama buka
         navHistory = createNavLabel("History Transaction", false);
         navProfile = createNavLabel("Profile", false);
 
@@ -65,6 +64,7 @@ public class MainGUI {
         headerPanel.add(navHistory);
         headerPanel.add(navProfile);
 
+        // --- 3. MAIN CONTENT (CARD LAYOUT) ---
         cardLayout = new CardLayout();
         mainBodyPanel = new JPanel(cardLayout);
 
@@ -158,13 +158,13 @@ public class MainGUI {
             JComboBox<String> typeBox = new JComboBox<>(types);
             JTextField amountField = new JTextField();
 
-            form.add(new JLabel("Description:"));
+            form.add(new JLabel("Deskripsi:"));
             form.add(descField);
-            form.add(new JLabel("Category:"));
+            form.add(new JLabel("kategori:"));
             form.add(categoryField);
             form.add(new JLabel("Type:"));
             form.add(typeBox);
-            form.add(new JLabel("Amount:"));
+            form.add(new JLabel("jumlah:"));
             form.add(amountField);
 
             int result = JOptionPane.showConfirmDialog(frame, form, "Add Transaction", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -316,66 +316,7 @@ public class MainGUI {
         title.setForeground(unguTua);
 
         Button addTargetBtn = new Button("+ Add Target", unguTua, true);
-        addTargetBtn.addActionListener(e -> {
-                JPanel form = new JPanel(new GridLayout(0, 2, 6, 6));
-                JTextField categoryField = new JTextField();
-                JSpinner monthSpinner = new JSpinner(new SpinnerNumberModel(LocalDate.now().getMonthValue(), 1, 12, 1));
-                JSpinner yearSpinner = new JSpinner(new SpinnerNumberModel(LocalDate.now().getYear(), 2000, LocalDate.now().getYear() + 5, 1));
-                JTextField amountField = new JTextField();
-
-                form.add(new JLabel("Category:"));
-                form.add(categoryField);
-                form.add(new JLabel("Month (1-12):"));
-                form.add(monthSpinner);
-                form.add(new JLabel("Year:"));
-                form.add(yearSpinner);
-                form.add(new JLabel("Budget Amount:"));
-                form.add(amountField);
-
-                int result = JOptionPane.showConfirmDialog(frame, form, "Set Budget", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-                if (result != JOptionPane.OK_OPTION) return;
-
-                String category = categoryField.getText().trim();
-                int month = (int) monthSpinner.getValue();
-                int year = (int) yearSpinner.getValue();
-                double amount;
-                try {
-                    amount = Double.parseDouble(amountField.getText().trim());
-                    if (category.isEmpty()) {
-                        JOptionPane.showMessageDialog(frame, "Category is required.", "Input Error", JOptionPane.WARNING_MESSAGE);
-                        return;
-                    }
-                    if (amount < 0) {
-                        JOptionPane.showMessageDialog(frame, "Amount must be non-negative.", "Input Error", JOptionPane.WARNING_MESSAGE);
-                        return;
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(frame, "Invalid amount. Please enter a numeric value.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                // Persist on background thread and refresh UI when done
-                new SwingWorker<Void, Void>() {
-                    @Override
-                    protected Void doInBackground() throws Exception {
-                        // call BudgetController properly
-                        budgetController.setBudget(category, month, year, amount);
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        try {
-                            get();
-                            if (refreshTransaction != null) refreshTransaction.run();
-                            JOptionPane.showMessageDialog(frame, "Budget set for " + category + " (" + month + "/" + year + ").", "Success", JOptionPane.INFORMATION_MESSAGE);
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(frame, "Failed to set budget: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                }.execute();
-        });
-
+        addTargetBtn.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Form Tambah Target Muncul Disini"));
 
         JPanel btnWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         btnWrapper.setBackground(bgColor);
@@ -393,17 +334,6 @@ public class MainGUI {
         listPanel.add(createSingleTargetItem("Macbook Air M2", 18000000, 12500000));
         listPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         listPanel.add(createSingleTargetItem("Liburan Akhir Tahun", 10000000, 2500000));
-
-        List<Budget> budgets = budgetController.getBudgetsThisMonth();
-        for (Budget b : budgets) {
-            double currentAmount = 0;
-            try {
-               // currentAmount = budgetController.getTotalExpenseForCategoryMonth(
-                //   b.getCategory(), b.getMonth(), b.getYear());
-            } catch (Exception ignored) {}
-            listPanel.add(createSingleTargetItem(b.getCategory(), b.getLimit(), currentAmount));
-            listPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-        }
 
         container.add(listPanel, BorderLayout.CENTER);
 
@@ -602,7 +532,7 @@ public class MainGUI {
         panel.add(top, BorderLayout.NORTH);
 
         // Table setup
-        String[] columnNames = {"Tanggal", "Kategori", "Deskripsi", "Tipe", "Jumlah"};
+        String[] columnNames = {"id","Tanggal", "Kategori", "Deskripsi", "Tipe", "Jumlah"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
@@ -641,6 +571,7 @@ public class MainGUI {
                 model.setRowCount(0);
                 for (Transaction t : list) {
                     model.addRow(new Object[]{
+                            t.getId(),
                             t.getDate().format(dateFmt),
                             t.getCategory(),
                             t.getDescription(),
@@ -696,6 +627,7 @@ public class MainGUI {
                 model.setRowCount(0);
                 for (Transaction t : results) {
                     model.addRow(new Object[]{
+                            t.getId(),
                             t.getDate().format(dateFmt),
                             t.getCategory(),
                             t.getDescription(),
